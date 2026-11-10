@@ -1,0 +1,2 @@
+# Scripts exécutés sur ESXi (busybox ash) : fins de ligne LF obligatoires
+*.sh text eol=lf
