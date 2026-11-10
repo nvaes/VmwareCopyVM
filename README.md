@@ -2,6 +2,11 @@
 
 `esxi-vm-move.sh` arrête une VM sur un hôte ESXi et copie **tous** ses fichiers vers un autre hôte ESXi via SSH, sans vCenter.
 
+> **Ne fonctionne pas avec vSAN** (VxRail compris), ni en source ni en destination.
+> Sur vSAN, un disque est un objet et non un fichier : la copie de fichiers ne peut ni le lire ni l'écrire.
+> Le script détecte vSAN et s'arrête **avant** d'éteindre la VM. Pour vSAN, utiliser `ovftool` (voir [Alternative pour vSAN](#alternative-pour-vsan--ovftool-dhôte-à-hôte)).
+> Datastores pris en charge : **VMFS** et **NFS**.
+
 - Dossier de la VM : vmx, nvram, vmsd, vmsn, logs et disques locaux.
 - Disques situés sur **d'autres datastores** (lus dans le `.vmx`).
 - Extents (`-flat`, `-delta`, `-sesparse`) et **chaîne de snapshots** complète.

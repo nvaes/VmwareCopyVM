@@ -10,6 +10,11 @@
 #
 # À exécuter dans le shell de l'ESXi SOURCE (busybox ash : bash non requis).
 #
+# LIMITE : NE FONCTIONNE PAS AVEC vSAN (VxRail compris), ni en source ni en
+# destination : un disque vSAN est un objet, pas un fichier. Le script le
+# détecte et s'arrête avant d'éteindre la VM. Datastores pris en charge :
+# VMFS et NFS. Pour vSAN, utiliser ovftool (voir README).
+#
 # Usage :
 #   ./esxi-vm-move.sh -d root@esx-dst -p /vmfs/volumes/DATASTORE [options] [VM]
 #
