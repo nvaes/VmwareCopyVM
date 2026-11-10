@@ -150,7 +150,13 @@ VMARG="${1:-}"
 # Terminal : ligne réécrite sur place ; sinon (nohup/log) : une ligne par mesure
 if [ -t 2 ]; then EOL=$(printf '\r'); : "${PINT:=2}"; else EOL=$(printf '\n_'); EOL=${EOL%_}; : "${PINT:=30}"; fi
 [ -n "$PINT" ] || PINT=2
-command -v vim-cmd >/dev/null 2>&1 || die "vim-cmd introuvable : ce script doit tourner sur l'ESXi source"
+# Pas de « command -v » : non fiable dans le busybox d'ESXi
+vim-cmd vmsvc/getallvms >/dev/null 2>&1 || die "vim-cmd ne répond pas : ce script doit tourner sur l'ESXi source"
+case "$DPATH" in
+    *vsan:*|*vsanDatastore*)
+        die "Destination vSAN ($DPATH) : non prise en charge. Un disque vSAN est un objet, pas un fichier ;
+       il ne peut pas être écrit par copie de fichiers. Utiliser ovftool (voir README) ou une destination VMFS/NFS." ;;
+esac
 mkdir -p "$WORK" || die "Impossible de créer $WORK"
 : > "$WORK/descs"; : > "$WORK/data"; : > "$WORK/flat"
 
@@ -190,6 +196,10 @@ while IFS= read -r d <&4; do
         cdir=$(dirname "$cur")
         sed -nE 's/^(RW|RDONLY|NOACCESS) [0-9]+ ([A-Z]+) "([^"]+)".*/\2|\3/p' "$cur" > "$WORK/ext"
         while IFS='|' read -r typ f <&5; do
+            case "$f" in
+                vsan://*) die "Disque vSAN détecté ($cur) : les données sont un objet vSAN, pas un fichier.
+       Copie impossible par ce script ; utiliser ovftool (voir README) ou déplacer d'abord la VM sur un datastore VMFS/NFS." ;;
+            esac
             case "$typ" in
                 VMFSRDM|VMFSRAW|VMFSPASSTHROUGHRAW)
                     die "RDM détecté ($cur) : non copiable, à traiter séparément" ;;

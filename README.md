@@ -71,8 +71,20 @@ tail -f /tmp/vmmove.log
 - **Avec `-z`** : le débit affiché est celui des données écrites à destination, pas celui du réseau.
 - **ISO** montées depuis un datastore : non copiées (un avertissement est affiché).
 - **RDM** : non pris en charge.
+- **vSAN** (source ou destination, ex. VxRail) : non pris en charge. Sur vSAN, un disque n'est pas un fichier `-flat.vmdk` : le descripteur pointe vers un objet (`vsan://…`), que la copie de fichiers ne peut ni lire ni écrire. Le script s'arrête avant d'éteindre la VM si une source ou une destination vSAN est détectée.
 - **VM source** : elle reste enregistrée et arrêtée, ce qui permet un retour arrière. Au premier démarrage à destination, répondre « I Moved It » (conserve UUID et MAC). Ne jamais démarrer les deux copies en même temps.
 - **Pas de conversion** de format : copie ESXi → ESXi uniquement.
+
+## Alternative pour vSAN : ovftool d'hôte à hôte
+
+`ovftool` (VMware OVF Tool) lit et écrit les disques par l'API de l'hôte, y compris sur vSAN. Il s'exécute depuis un poste ou une VM d'administration, et les données transitent par cette machine. La VM doit être arrêtée.
+
+```sh
+ovftool --noSSLVerify --diskMode=thin --datastore=vsanDatastore --network="VM Network" \
+  "vi://root@hote-source/NomDeLaVM" "vi://root@hote-destination"
+```
+
+Le nom du datastore et du réseau de destination sont ceux vus par l'hôte de destination.
 
 ## Tests hors ESXi
 
